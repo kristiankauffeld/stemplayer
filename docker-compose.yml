@@ -1,11 +1,17 @@
 services:
   streaming-service:
+    image: streaming-service
     build:
       context: ./streaming-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-dev
     container_name: streaming-service
+    volumes:
+      - /tmp/streaming-service/npm-cache:/root/.npm:z
+      - ./streaming-service/src:/app/src:z
+      - ./streaming-service/stems:/app/stems:z
     ports:
       - '4000:80'
     environment:
       - PORT=80
+      - NODE_ENV=development
     restart: 'no'

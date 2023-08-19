@@ -8,7 +8,7 @@ dotenv.config({ debug: true });
 const port = process.env.PORT;
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('Hello world!');
 });
 
 // Endpoint to stream stems
