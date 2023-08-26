@@ -6,6 +6,19 @@ Stems are the musical building blocks of a song. Examples of the stems contained
 2. Song separation/Demucs: For processing a song and creating separated stems (drums, bass, vocals, etc.).
 3. Song Upload Service: For handling the song input (in this simple version, reading a song from the local filesystem).
 
+### Testing:
+
+Use a tool like Postman or Insomnia and send a POST request to "http://localhost:4001/upload", and you should receive the following JSON response:
+
+```sh
+{
+	"status": "success",
+	"message": "Received request"
+}
+```
+
+the HTTP POST request received by the song upload microservice's endpoint "/upload", is forwarded to the Music Source Separation microservice's endpoint "process_audio" which returns this simple JSON response.
+
 ### Build and boot a single service:
 
 build the image using the `docker build` command:
