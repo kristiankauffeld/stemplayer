@@ -1,0 +1,11 @@
+FROM python:3.11.5-slim
+
+WORKDIR /app
+COPY src/ ./
+RUN pip install -U pip && pip install pipenv
+COPY Pipfile Pipfile.lock ./
+RUN pipenv install --system --deploy
+
+COPY . .
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -15,3 +15,31 @@ services:
       - PORT=80
       - NODE_ENV=development
     restart: 'no'
+
+  stem-separation:
+    image: stem-separation
+    build:
+      context: ./stem-separation
+      dockerfile: Dockerfile-dev
+    container_name: stem-separation
+    ports:
+      - '8000:8000'
+    restart: 'no'
+
+  song-upload:
+    image: song-upload
+    build:
+      context: ./song-upload
+      dockerfile: Dockerfile-dev
+    container_name: song-upload
+    volumes:
+      - /tmp/song-upload/npm-cache:/root/.npm:z
+      - ./song-upload/src:/app/src:z
+    ports:
+      - '4001:80'
+    environment:
+      - PORT=80
+      - NODE_ENV=development
+      - DEMUCS_HOST=stem-separation
+      - DEMUCS_PORT=80
+    restart: 'no'

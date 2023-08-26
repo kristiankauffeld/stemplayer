@@ -1,5 +1,11 @@
 Stems are the musical building blocks of a song. Examples of the stems contained in a song might be the vocals, guitars, or drums.
 
+### Services:
+
+1. Streaming Service: For serving the separated stems to the client.
+2. Song separation/Demucs: For processing a song and creating separated stems (drums, bass, vocals, etc.).
+3. Song Upload Service: For handling the song input (in this simple version, reading a song from the local filesystem).
+
 ### Build and boot a single service:
 
 build the image using the `docker build` command:
