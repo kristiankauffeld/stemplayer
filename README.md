@@ -18,6 +18,12 @@ This application uses an asynchronous communication style since a synchronous co
 
 Therefore there is a message queue between the song-upload service and the stem-separation service. The upload service can push a message into the queue, and the separation service (the consumer service) can pull from it at its own pace. This approach is fundamentally different from a direct HTTP POST, where the receiver must process the request immediately or fail.
 
+### Single-Cecipient Messages vs. Multiple-Recipient (or broadcast-style) Messages
+
+The interaction between the song-upload service and the stem-separation service, uses the single-recipient model to ensure that each uploaded song gets processed exactly once.
+
+Once the song has been processed into stems, we use the multiple-recipient message model to notify multiple services that may be interested in this event, such as the streaming-service, a caching service, or perhaps an analytics service that tracks how many songs have been processed.
+
 ### RabbitMQ:
 
 RabbitMQ dashboard can be accessed at http://localhost:15672/. You can login with the default user name, guest, and the default password, guest.

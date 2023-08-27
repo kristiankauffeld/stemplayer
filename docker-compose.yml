@@ -35,6 +35,10 @@ services:
     container_name: stem-separation
     ports:
       - '8000:80'
+    environment:
+      - RABBIT=amqp://guest:guest@rabbit:5672
+    depends_on:
+      - rabbit
     restart: 'no'
 
   song-upload:

@@ -8,4 +8,7 @@ RUN pipenv install --system --deploy
 
 COPY . .
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80"]
+
+
+CMD wait-for-it --service rabbit:5672 -- echo "rabbitmq is up" && \
+uvicorn app:app --host 0.0.0.0 --port 80
