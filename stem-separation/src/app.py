@@ -9,6 +9,6 @@ def index():
 
 
 @app.post("/process_audio/")
-async def process_audio():
+async def create_stems():
     print("Received request")
     return {"status": "success", "message": "Received request"}

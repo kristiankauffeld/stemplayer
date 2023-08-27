@@ -1,4 +1,15 @@
 services:
+  rabbit:
+    image: rabbitmq:3.9.21-management
+    container_name: rabbit
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    expose:
+      - '5672'
+      - '15672'
+    restart: always
+
   streaming-service:
     image: streaming-service
     build:
@@ -40,7 +51,10 @@ services:
       - '4001:80'
     environment:
       - PORT=80
+      - RABBIT=amqp://guest:guest@rabbit:5672
       - NODE_ENV=development
       - DEMUCS_HOST=stem-separation
       - DEMUCS_PORT=80
+    depends_on:
+      - rabbit
     restart: 'no'

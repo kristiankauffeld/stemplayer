@@ -6,6 +6,22 @@ Stems are the musical building blocks of a song. Examples of the stems contained
 2. Song separation/Demucs: For processing a song and creating separated stems (drums, bass, vocals, etc.).
 3. Song Upload Service: For handling the song input (in this simple version, reading a song from the local filesystem).
 
+### Asynchronous vs. Synchronous Communication Style:
+
+This application uses an asynchronous communication style since a synchronous communication would have issues like:
+
+- Back Pressure: If the separation service can't process requests as fast as they're coming in, it could get overwhelmed.
+
+- Coupling: This form of interaction creates a tight coupling between the services. If the separation service is down, the upload service can't proceed with its task.
+
+- Resource Utilization: The upload service would have to keep the HTTP connection open until the separation service finishes the task, which could be resource-intensive for long operations.
+
+Therefore there is a message queue between the song-upload service and the stem-separation service. The upload service can push a message into the queue, and the separation service (the consumer service) can pull from it at its own pace. This approach is fundamentally different from a direct HTTP POST, where the receiver must process the request immediately or fail.
+
+### RabbitMQ:
+
+RabbitMQ dashboard can be accessed at http://localhost:15672/. You can login with the default user name, guest, and the default password, guest.
+
 ### Testing:
 
 Use a tool like Postman or Insomnia and send a POST request to "http://localhost:4001/upload", and you should receive the following JSON response:
