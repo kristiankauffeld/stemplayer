@@ -1,3 +1,7 @@
+### Introduction
+
+This application is a basic proof of concept showcasing a small microservice application that create stems.
+
 Stems are the musical building blocks of a song. Examples of the stems contained in a song might be the vocals, guitars, or drums.
 
 ### Services:

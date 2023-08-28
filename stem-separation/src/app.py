@@ -2,6 +2,7 @@ from fastapi import FastAPI
 import pika
 import os
 from urllib.parse import urlparse
+import threading
 
 app = FastAPI(debug=True)
 
@@ -12,7 +13,7 @@ if RABBIT is None:
     raise ValueError("RABBIT environment variable is not set")
 
 parsed_url = urlparse(RABBIT)
-queue_name = "SeparationQueue"
+queue_name = "StemSeparation"
 
 # Connect to RabbitMQ
 connection = pika.BlockingConnection(
@@ -25,26 +26,34 @@ connection = pika.BlockingConnection(
 
 channel = connection.channel()
 
-# Declare the queue
-channel.queue_declare(queue=queue_name)
+# Check if queue already exists, and create if necessary
+channel.queue_declare(
+    queue=queue_name, durable=True
+)  # Durable ensures the queue survives broker restarts
 
 
-def callback(ch, method, properties, body):
-    print(f"Received song data: {body}")
-    # Here you would add your music separation logic
-    print("Processing audio...")
+# A message handler function to receive incoming messages
+def consume_separation_message(ch, method, properties, body):
+    print(f"Received audio for stem separation: {body.decode('utf-8')}")
+    # TODO: Add your stem separation logic here
+    ch.basic_ack(delivery_tag=method.delivery_tag)  # Acknowledge receipt of message
 
 
-# Consume messages from the RabbitMQ queue
-channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+# Start receiving messages from the "StemSeparation" queue
+channel.basic_consume(
+    queue=queue_name, on_message_callback=consume_separation_message, auto_ack=False
+)
+
+
+def start_rabbitmq_consumer():
+    channel.start_consuming()
+
+
+# Start the RabbitMQ consumer in a separate thread
+rabbitmq_thread = threading.Thread(target=start_rabbitmq_consumer)
+rabbitmq_thread.start()
 
 
 @app.get("/")
 def index():
     return {"details": "Hello world!"}
-
-
-@app.post("/process_audio/")
-async def create_stems():
-    print("Received request")
-    return {"status": "success", "message": "Received request"}

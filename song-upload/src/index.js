@@ -5,17 +5,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 const amqp = require('amqplib');
 
-if (!process.env.PORT) {
-  throw new Error(
-    'Please specify the port number for the HTTP server with the environment variable PORT.'
-  );
-}
-
-if (!process.env.RABBIT) {
-  throw new Error(
-    'Please specify the name of the RabbitMQ host using environment variable RABBIT'
-  );
-}
+dotenv.config({ debug: true });
 
 const PORT = process.env.PORT;
 const RABBIT = process.env.RABBIT;
@@ -24,43 +14,64 @@ const RABBIT = process.env.RABBIT;
 const DEMUCS_HOST = process.env.DEMUCS_HOST;
 const DEMUCS_PORT = process.env.DEMUCS_PORT;
 
-console.log(`Connecting to RabbitMQ server at ${RABBIT}.`);
+if (!PORT || !RABBIT) {
+  throw new Error('Missing environment variables');
+}
 
-const app = express();
-dotenv.config({ debug: true });
+// Function to send a message for stem separation
+function sendStemSeparationMessage(messageChannel, filePath) {
+  // The name of the queue should match what you declared in the FastAPI service
+  const queueName = 'StemSeparation';
 
-console.log('Connected to RabbitMQ.');
+  // Make sure the queue exists
+  messageChannel.assertQueue(queueName, { durable: true });
 
-app.get('/', (req, res) => {
-  res.send('song-upload service');
-});
+  // Send a message
+  messageChannel.sendToQueue(queueName, Buffer.from(filePath), {
+    // Persistent makes sure the message survives RabbitMQ server restarts
+    persistent: true,
+  });
 
-app.post('/upload', async (req, res) => {
-  const filePath = path.join(
-    __dirname,
-    '..',
-    'songs',
-    'Cy-Curnin-Comfy-Couches.mp3'
-  );
-  //const filePath = './songs/Cy-Curnin-Comfy-Couches.mp3';
+  console.log(`Sent a stem separation request for file: ${filePath}`);
+}
 
-  try {
-    const audioData = fs.readFileSync(filePath);
-    const response = await axios.post(
-      `http://${DEMUCS_HOST}:${DEMUCS_PORT}/process_audio/`,
-      audioData,
-      {
-        headers: {
-          'Content-Type': 'audio/mpeg',
-        },
-      }
+async function main() {
+  console.log(`Connecting to RabbitMQ server at ${RABBIT}.`);
+
+  const messagingConnection = await amqp.connect(RABBIT); // Connect to the RabbitMQ server.
+
+  console.log('Connected to RabbitMQ.');
+
+  const messageChannel = await messagingConnection.createChannel(); // Create a RabbitMQ messaging channel.
+
+  const app = express();
+
+  app.post('/upload', async (req, res) => {
+    const filePath = path.join(
+      __dirname,
+      '..',
+      'songs',
+      'Cy-Curnin-Comfy-Couches.mp3'
     );
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
 
-app.listen(PORT, () => {
-  console.log(`Upload Service running on http://localhost:${PORT}`);
+    try {
+      sendStemSeparationMessage(messageChannel, filePath);
+
+      res.json({
+        status: 'success',
+        message: 'Received file and sent for stem separation',
+      });
+    } catch (error) {
+      res.status(500).send(error.message);
+    }
+  });
+
+  app.listen(PORT, () => {
+    console.log(`Upload Service running on http://localhost:${PORT}`);
+  });
+}
+
+main().catch((err) => {
+  console.error('Microservice failed to start.');
+  console.error((err && err.stack) || err);
 });
